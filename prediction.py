@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
 matches = pd.read_csv("input/Test.csv")
 print("\nHaving a look at the dataset - ")
@@ -48,11 +50,22 @@ print(matches.apply(lambda x: sum(x.isnull()),axis=0))
 print("\nData for model building - ")
 print(matches.head())
 
-# Building of multiple linear regression model
+# Applying scaler since some columns have lower integer values
+scaler = MinMaxScaler()
+features = ['Runs', 'Inns', 'Opposition', 'Ground']
+matches[features] = scaler.fit_transform(matches[features])
+
+# Selection of features for train test split
 features = matches[['Inns', 'Opposition', 'Ground']]
 target = matches[['Runs']]
+
+# We specify random seed so that the train and test data set always have the same rows, respectively
+np.random.seed(0)
+x_train, x_test,y_train,y_test = train_test_split(features, target, train_size = 0.7, test_size = 0.3, random_state = 100)
+
+# Building of multiple linear regression model
 linearregression = LinearRegression()
-model = linearregression.fit(features, target)
-predictions = linearregression.predict(features)
+model = linearregression.fit(x_train, y_train)
+predictions = linearregression.predict(x_test)
 print("\nAccuracy of the model - ")
-print(linearregression.score(features, target)*1000)
+print(linearregression.score(x_test, y_test)*1000)
